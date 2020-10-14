@@ -6,47 +6,65 @@
 #include "task.h"			/* Task */
 #include "timers.h"
 
-/* Examples */
-void vTask1(void*); // t1 -> (9, 7)    priority = 2
-void vTask2(void*); // t2 -> (5, 2)    priority = 1
-void vTask3(void*); // t3 -> (17, 2.5) priority = 3
+typedef struct TaskData Task;
+void init(Task*,unsigned int,unsigned int,TickType_t,TickType_t,TickType_t);
+void print_task_data(Task*);
+void run_task(void*);
 
-int main ( void )
+struct TaskData
 {
-	xTaskCreate(vTask1, "Task 1", 1000, NULL, 2, NULL);
-	xTaskCreate(vTask2, "Task 2", 1000, NULL, 1, NULL);
-	xTaskCreate(vTask3, "Task 3", 1000, NULL, 3, NULL);
-	printf("\nTask 1: release_time(%.2f) | period(%.2f)  | execution_time(%.2f) | deadline(%.2f)\n",
-		   pdMS_TO_TICKS(40)/10.0, pdMS_TO_TICKS(90)/10.0, pdMS_TO_TICKS(70)/10.0, pdMS_TO_TICKS(130)/10.0);
-	printf("Task 2: release_time(%.2f) | period(%.2f)  | execution_time(%.2f) | deadline(%.2f)\n",
-		   pdMS_TO_TICKS(90)/10.0, pdMS_TO_TICKS(50)/10.0, pdMS_TO_TICKS(20)/10.0, pdMS_TO_TICKS(140)/10.0);
-	printf("Task 3: release_time(%.2f) | period(%.2f) | execution_time(%.2f) | deadline(%.2f)\n",
-		   pdMS_TO_TICKS(30)/10.0, pdMS_TO_TICKS(170)/10.0, pdMS_TO_TICKS(25)/10.0, pdMS_TO_TICKS(200)/10.0);
-	printf("\nRunning the tasks in 'FIFO' execution model ...\n\n");
-	vTaskStartScheduler();
-	return 0;
+	// Data
+	unsigned int id;
+	unsigned int priority;
+	TickType_t   release_time;
+	TickType_t   execution_time;
+	TickType_t   deadline;
+};
+
+void init(Task* pTask,
+		  unsigned int _id,
+		  unsigned int _priority,
+		  TickType_t _release_time,
+		  TickType_t _execution_time,
+		  TickType_t _deadline)
+{
+	pTask->id = _id;
+	pTask->priority = _priority;
+	pTask->release_time = _release_time;
+	pTask->execution_time = _execution_time;
+	pTask->deadline = _deadline;
 }
 
-void vTask1(void* parameter)
+void print_task_data(Task* pTask)
 {
-	parameter = NULL;
-	TickType_t task_start = pdMS_TO_TICKS(40);
-	TickType_t execution_time = pdMS_TO_TICKS(70);
-	TickType_t deadline = pdMS_TO_TICKS(130);
+	printf("\nTask %u: release_time(%.2f) | execution_time(%.2f) | deadline(%.2f) | priority(%u)",
+		   pTask->id,
+		   pTask->release_time/10.0,
+		   pTask->execution_time/10.0,
+		   pTask->deadline/10.0,
+		   pTask->priority);
+}
+
+void run_task(void* parameter)
+{
+	Task* pTask = (Task*) parameter;
+	vTaskDelay(pTask->release_time); // Block the task till release time
 
 	TickType_t tick_count;
-	vTaskDelay(task_start);
 	TickType_t current_tick_count = xTaskGetTickCount();
-	printf("Task 1 : released at -> %.2f | Execution started at -> %.2f\n", task_start/10.0, current_tick_count/10.0);
+	printf("Task %u : priority(%u) : released at -> %.2f | Execution started at -> %.2f\n",
+		   pTask->id, pTask->priority, pTask->release_time/10.0, current_tick_count/10.0);
+
+	// Start task execution
     while (1)
 	{
 		tick_count = xTaskGetTickCount();
-		if (tick_count >= current_tick_count + execution_time)
+		if (tick_count >= current_tick_count + pTask->execution_time)
 		{
-			printf("Task 1 : %3.2f\n", tick_count/10.0);
-			if (tick_count > deadline)
+			printf("Task %u : %3.2f\n", pTask->id, tick_count/10.0);
+			if (tick_count > pTask->deadline)
 			{
-				printf("Task 1 : DEADLINE VIOLATION !!!\n");
+				printf("Task %u : DEADLINE VIOLATION !!!\n", pTask->id);
 			}
 			break;
 		}
@@ -54,58 +72,25 @@ void vTask1(void* parameter)
 	vTaskDelete(NULL);
 }
 
-void vTask2(void* parameter)
+int main ( void )
 {
-	parameter = NULL;
-	TickType_t task_start = pdMS_TO_TICKS(90);
-	TickType_t execution_time = pdMS_TO_TICKS(20);
-	TickType_t deadline = pdMS_TO_TICKS(140);
+	// Create 4 task objects
+	Task sTask1, sTask2, sTask3;
+	init(&sTask1, 1, 2, pdMS_TO_TICKS(40), pdMS_TO_TICKS(70), pdMS_TO_TICKS(130));
+	init(&sTask2, 2, 1, pdMS_TO_TICKS(90), pdMS_TO_TICKS(20), pdMS_TO_TICKS(140));
+	init(&sTask3, 3, 3, pdMS_TO_TICKS(30), pdMS_TO_TICKS(25), pdMS_TO_TICKS(200));
+	print_task_data(&sTask1);
+	print_task_data(&sTask2);
+	print_task_data(&sTask3);
+	printf("\n\nRunning the tasks in 'FIFO' execution model ...\n\n");
 
-	TickType_t tick_count;
-	vTaskDelay(task_start);
-	TickType_t current_tick_count = xTaskGetTickCount();
-	printf("Task 2 : released at -> %.2f | Execution started at -> %.2f\n", task_start/10.0, current_tick_count/10.0);
-	while (1)
-	{
-		tick_count = xTaskGetTickCount();
-		if (tick_count >= current_tick_count + execution_time)
-		{
-			printf("Task 2 : %3.2f\n", tick_count/10.0);
-			if (tick_count > deadline)
-			{
-				printf("Task 2 : DEADLINE VIOLATION !!!\n");
-			}
-			break;
-		}
-	}
-	vTaskDelete(NULL);
-}
+	// Scheduling the tasks
+	xTaskCreate(run_task, "Task 1", 1024, (void*) &sTask1, sTask1.priority, NULL);
+	xTaskCreate(run_task, "Task 2", 1024, (void*) &sTask2, sTask2.priority, NULL);
+	xTaskCreate(run_task, "Task 3", 1024, (void*) &sTask3, sTask3.priority, NULL);
+	vTaskStartScheduler();
 
-void vTask3(void* parameter)
-{
-	parameter = NULL;
-	TickType_t task_start = pdMS_TO_TICKS(30);
-	TickType_t execution_time = pdMS_TO_TICKS(25);
-	TickType_t deadline = pdMS_TO_TICKS(200);
-
-	TickType_t tick_count;
-	vTaskDelay(task_start);
-	TickType_t current_tick_count = xTaskGetTickCount();
-	printf("Task 3 : released at -> %.2f | Execution started at -> %.2f\n", task_start/10.0, current_tick_count/10.0);
-	while (1)
-	{
-		tick_count = xTaskGetTickCount();
-		if (tick_count >= current_tick_count + execution_time)
-		{
-			printf("Task 3 : %3.2f\n", tick_count/10.0);
-			if (tick_count > deadline)
-			{
-				printf("Task 3 : DEADLINE VIOLATION !!!\n");
-			}
-			break;
-		}
-	}
-	vTaskDelete(NULL);
+	return 0;
 }
 
 /*-----------------------------------------------------------*/

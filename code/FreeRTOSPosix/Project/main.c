@@ -6,122 +6,91 @@
 #include "task.h"			/* Task */
 #include "timers.h"
 
-/* Assignment-1: Q2 */
-void vTask1(void*); // t1 -> (8, 3)   priority = 4
-void vTask2(void*); // t2 -> (15, 8)  priority = 2
-void vTask3(void*); // t3 -> (20, 4)  priority = 3
-void vTask4(void*); // t4 -> (22, 10) priority = 1
+typedef struct TaskData Task;
+void init(Task*,unsigned int,unsigned int,TickType_t,TickType_t,TickType_t);
+void print_task_data(Task*);
+void run_task(void*);
+
+struct TaskData
+{
+	// Data
+	unsigned int id;
+	unsigned int priority;
+	TickType_t   release_time;
+	TickType_t   period;
+	TickType_t   execution_time;
+};
+
+void init(Task* pTask,
+		  unsigned int _id,
+		  unsigned int _priority,
+		  TickType_t _release_time,
+		  TickType_t _period,
+		  TickType_t _execution_time)
+{
+	pTask->id             = _id;
+	pTask->priority       = _priority;
+	pTask->release_time   = _release_time;
+	pTask->period         = _period;
+	pTask->execution_time = _execution_time;
+}
+
+void print_task_data(Task* pTask)
+{
+	printf("\nTask %u: release_time(%d) | period(%2d) | execution_time(%2d) | priority(%u)",
+		   pTask->id,
+		   pTask->release_time,
+		   pTask->period,
+		   pTask->execution_time,
+		   pTask->priority);
+}
+
+void run_task(void* parameter)
+{
+	Task* pTask = (Task*) parameter;
+	TickType_t current_tick_count = xTaskGetTickCount();
+	printf("Task %u : priority(%u) : released at -> %d | Execution started at -> %d\n",
+		   pTask->id, pTask->priority, pTask->release_time, current_tick_count);
+
+	// Start task execution
+    while (1)
+	{
+		TickType_t tick_count = xTaskGetTickCount();
+		if (tick_count >= current_tick_count + pTask->execution_time)
+		{
+			printf("Task %u : Response Time : %d\n", pTask->id, tick_count);
+			if (tick_count > pTask->period)
+			{
+				printf("Task %u : DEADLINE VIOLATION !!!\n", pTask->id);
+			}
+			break;
+		}
+	}
+	vTaskDelete(NULL);
+}
 
 int main ( void )
 {
-	xTaskCreate(vTask1, "Task 1", 1024, NULL, 4, NULL);
-	xTaskCreate(vTask2, "Task 2", 1024, NULL, 2, NULL);
-	xTaskCreate(vTask3, "Task 3", 1024, NULL, 3, NULL);
-	xTaskCreate(vTask4, "Task 4", 1024, NULL, 1, NULL);
-	printf("\nTask 1: release_time(%d) | period(%2d) | execution_time(%2d)\n",
-		   pdMS_TO_TICKS(0), pdMS_TO_TICKS(8), pdMS_TO_TICKS(3));
-	printf("Task 2: release_time(%d) | period(%2d) | execution_time(%2d)\n",
-		   pdMS_TO_TICKS(0), pdMS_TO_TICKS(15), pdMS_TO_TICKS(8));
-	printf("Task 3: release_time(%d) | period(%2d) | execution_time(%2d)\n",
-		   pdMS_TO_TICKS(0), pdMS_TO_TICKS(20), pdMS_TO_TICKS(4));
-	printf("Task 4: release_time(%d) | period(%2d) | execution_time(%2d)\n",
-		   pdMS_TO_TICKS(0), pdMS_TO_TICKS(22), pdMS_TO_TICKS(10));
-	printf("\nRunning the tasks in 'Shortest Job First' execution model ...\n\n");
+	// Create 4 task objects
+	Task sTask1, sTask2, sTask3, sTask4;
+	init(&sTask1, 1, 4, pdMS_TO_TICKS(0), pdMS_TO_TICKS(8),  pdMS_TO_TICKS(3));
+	init(&sTask2, 2, 2, pdMS_TO_TICKS(0), pdMS_TO_TICKS(15), pdMS_TO_TICKS(8));
+	init(&sTask3, 3, 3, pdMS_TO_TICKS(0), pdMS_TO_TICKS(20), pdMS_TO_TICKS(4));
+	init(&sTask4, 4, 1, pdMS_TO_TICKS(0), pdMS_TO_TICKS(22), pdMS_TO_TICKS(10));
+	print_task_data(&sTask1);
+	print_task_data(&sTask2);
+	print_task_data(&sTask3);
+	print_task_data(&sTask4);
+	printf("\n\nRunning the tasks in 'Shortest Job First' execution model ...\n\n");
+
+	// Scheduling the tasks
+	xTaskCreate(run_task, "Task 1", 1024, (void*) &sTask1, sTask1.priority, NULL);
+	xTaskCreate(run_task, "Task 2", 1024, (void*) &sTask2, sTask2.priority, NULL);
+	xTaskCreate(run_task, "Task 3", 1024, (void*) &sTask3, sTask3.priority, NULL);
+	xTaskCreate(run_task, "Task 4", 1024, (void*) &sTask4, sTask4.priority, NULL);
 	vTaskStartScheduler();
-	printf("\n Before Return ... \n");
+
 	return 0;
-}
-
-void vTask1(void* parameter)
-{
-	parameter = NULL;
-	TickType_t period = pdMS_TO_TICKS(8);
-	TickType_t execution_time = pdMS_TO_TICKS(3);
-	TickType_t current_tick_count = xTaskGetTickCount();
-	printf("Task 1 : released at r1 = 0 | Execution started at -> %d\n", current_tick_count);
-    while (1)
-	{
-		TickType_t tick_count = xTaskGetTickCount();
-		if (tick_count >= current_tick_count + execution_time)
-		{
-			printf("Task 1 : Response Time : %d\n", tick_count);
-			if (tick_count > period)
-			{
-				printf("Task 1 : DEADLINE VIOLATION !!!\n");
-			}
-			break;
-		}
-	}
-	vTaskDelete(NULL);
-}
-
-void vTask2(void* parameter)
-{
-	parameter = NULL;
-	TickType_t period = pdMS_TO_TICKS(15);
-	TickType_t execution_time = pdMS_TO_TICKS(8);
-	TickType_t current_tick_count = xTaskGetTickCount();
-	printf("Task 2 : released at r1 = 0 | Execution started at -> %d\n", current_tick_count);
-    while (1)
-	{
-		TickType_t tick_count = xTaskGetTickCount();
-		if (tick_count >= current_tick_count + execution_time)
-		{
-			printf("Task 2 : Response Time : %d\n", tick_count);
-			if (tick_count > period)
-			{
-				printf("Task 2 : DEADLINE VIOLATION !!!\n");
-			}
-			break;
-		}
-	}
-	vTaskDelete(NULL);
-}
-
-void vTask3(void* parameter)
-{
-	parameter = NULL;
-	TickType_t period = pdMS_TO_TICKS(20);
-	TickType_t execution_time = pdMS_TO_TICKS(4);
-	TickType_t current_tick_count = xTaskGetTickCount();
-	printf("Task 3 : released at r1 = 0 | Execution started at -> %d\n", current_tick_count);
-    while (1)
-	{
-		TickType_t tick_count = xTaskGetTickCount();
-		if (tick_count >= current_tick_count + execution_time)
-		{
-			printf("Task 3 : Response Time : %d\n", tick_count);
-			if (tick_count > period)
-			{
-				printf("Task 3 : DEADLINE VIOLATION !!!\n");
-			}
-			break;
-		}
-	}
-	vTaskDelete(NULL);
-}
-
-void vTask4(void* parameter)
-{
-	parameter = NULL;
-	TickType_t period = pdMS_TO_TICKS(22);
-	TickType_t execution_time = pdMS_TO_TICKS(10);
-	TickType_t current_tick_count = xTaskGetTickCount();
-	printf("Task 4 : released at r1 = 0 | Execution started at -> %d\n", current_tick_count);
-    while (1)
-	{
-		TickType_t tick_count = xTaskGetTickCount();
-		if (tick_count >= current_tick_count + execution_time)
-		{
-			printf("Task 4 : Response Time : %d\n", tick_count);
-			if (tick_count > period)
-			{
-				printf("Task 4 : DEADLINE VIOLATION !!!\n");
-			}
-			break;
-		}
-	}
-	vTaskDelete(NULL);
 }
 
 /*-----------------------------------------------------------*/
