@@ -6,6 +6,11 @@ Real Time Systems (Assigment-1):
 
 ![Alt text](../../images/q1.jpeg?raw=true "Q1 Task Set")
 
+<p align="center">
+  <img src="../../images/q1.jpeg" />
+</p>
+
+
 <h4>Q1 Execution Run:</h4>
 
 ```FreeRTOSPosix$ ./FreeRTOSPosix
