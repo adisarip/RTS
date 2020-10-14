@@ -7,25 +7,25 @@ Real Time Systems (Assigment-1):
 <h3>Q1 Execution Run:</h3>
 FreeRTOSPosix$ ./FreeRTOSPosix
 
-Task 1: release_time(4.00) | execution_time(7.00) | deadline(13.00) | priority(2)
-Task 2: release_time(9.00) | execution_time(2.00) | deadline(14.00) | priority(1)
-Task 3: release_time(3.00) | execution_time(2.50) | deadline(20.00) | priority(3)
+Task 1: release_time(4.00) | execution_time(7.00) | deadline(13.00) | priority(2)  
+Task 2: release_time(9.00) | execution_time(2.00) | deadline(14.00) | priority(1)  
+Task 3: release_time(3.00) | execution_time(2.50) | deadline(20.00) | priority(3)  
 
 Running the tasks in 'FIFO' execution model ...
 
-Running as PID: 93274
-Timer Resolution for Run TimeStats is 100 ticks per second.
-Task 3 : priority(3) : released at -> 3.00 | Execution started at -> 3.00
-Task 3 : 5.50
-Task 1 : priority(2) : released at -> 4.00 | Execution started at -> 5.50
-Task 1 : 12.50
-Task 2 : priority(1) : released at -> 9.00 | Execution started at -> 12.50
-Task 2 : 14.50
-Task 2 : DEADLINE VIOLATION !!!
-^Z
-zsh: suspended  ./FreeRTOSPosix
-FreeRTOSPosix$
-FreeRTOSPosix$
+Running as PID: 93274  
+Timer Resolution for Run TimeStats is 100 ticks per second.  
+Task 3 : priority(3) : released at -> 3.00 | Execution started at -> 3.00  
+Task 3 : 5.50  
+Task 1 : priority(2) : released at -> 4.00 | Execution started at -> 5.50  
+Task 1 : 12.50  
+Task 2 : priority(1) : released at -> 9.00 | Execution started at -> 12.50  
+Task 2 : 14.50  
+Task 2 : DEADLINE VIOLATION !!!  
+^Z  
+zsh: suspended  ./FreeRTOSPosix  
+FreeRTOSPosix$  
+FreeRTOSPosix$  
 
 ==================================================================
 
