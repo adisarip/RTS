@@ -34,28 +34,28 @@ FreeRTOSPosix$
 <h3>Q2 Execution Run:</h3>
 FreeRTOSPosix$ ./FreeRTOSPosix
 
-Task 1: release_time(0) | period( 8) | execution_time( 3) | priority(4)
-Task 2: release_time(0) | period(15) | execution_time( 8) | priority(2)
-Task 3: release_time(0) | period(20) | execution_time( 4) | priority(3)
-Task 4: release_time(0) | period(22) | execution_time(10) | priority(1)
+Task 1: release_time(0) | period( 8) | execution_time( 3) | priority(4)  
+Task 2: release_time(0) | period(15) | execution_time( 8) | priority(2)  
+Task 3: release_time(0) | period(20) | execution_time( 4) | priority(3)  
+Task 4: release_time(0) | period(22) | execution_time(10) | priority(1)  
 
-Running the tasks in 'Shortest Job First' execution model ...
+Running the tasks in 'Shortest Job First' execution model ...  
 
-Running as PID: 93718
-Timer Resolution for Run TimeStats is 100 ticks per second.
-Task 1 : priority(4) : released at -> 0 | Execution started at -> 0
-Task 1 : Response Time : 3
-Task 3 : priority(3) : released at -> 0 | Execution started at -> 3
-Task 3 : Response Time : 7
-Task 2 : priority(2) : released at -> 0 | Execution started at -> 7
-Task 2 : Response Time : 15
-Task 4 : priority(1) : released at -> 0 | Execution started at -> 15
-Task 4 : Response Time : 25
-Task 4 : DEADLINE VIOLATION !!!
-^Z
-zsh: suspended  ./FreeRTOSPosix
-FreeRTOSPosix$
-FreeRTOSPosix$
+Running as PID: 93718  
+Timer Resolution for Run TimeStats is 100 ticks per second.  
+Task 1 : priority(4) : released at -> 0 | Execution started at -> 0  
+Task 1 : Response Time : 3  
+Task 3 : priority(3) : released at -> 0 | Execution started at -> 3  
+Task 3 : Response Time : 7  
+Task 2 : priority(2) : released at -> 0 | Execution started at -> 7  
+Task 2 : Response Time : 15  
+Task 4 : priority(1) : released at -> 0 | Execution started at -> 15  
+Task 4 : Response Time : 25  
+Task 4 : DEADLINE VIOLATION !!!  
+^Z  
+zsh: suspended  ./FreeRTOSPosix  
+FreeRTOSPosix$  
+FreeRTOSPosix$  
 
 Based on the above response time results, Average response time of the Task-set can be computed as follows:
 
