@@ -5,7 +5,6 @@
 #include "FreeRTOS.h"		/* RTOS firmware */
 #include "task.h"			/* Task */
 #include "timers.h"
-#include <unistd.h>
 
 /* Examples */
 void vTask1(void*); // t1 -> (9, 7)    priority = 2
@@ -17,13 +16,13 @@ int main ( void )
 	xTaskCreate(vTask1, "Task 1", 1000, NULL, 2, NULL);
 	xTaskCreate(vTask2, "Task 2", 1000, NULL, 1, NULL);
 	xTaskCreate(vTask3, "Task 3", 1000, NULL, 3, NULL);
-	printf("\nTask 1: start(%.2f) | period(%.2f)  | execution_time(%.2f) | deadline(%.2f)\n",
+	printf("\nTask 1: release_time(%.2f) | period(%.2f)  | execution_time(%.2f) | deadline(%.2f)\n",
 		   pdMS_TO_TICKS(40)/10.0, pdMS_TO_TICKS(90)/10.0, pdMS_TO_TICKS(70)/10.0, pdMS_TO_TICKS(130)/10.0);
-	printf("Task 2: start(%.2f) | period(%.2f)  | execution_time(%.2f) | deadline(%.2f)\n",
+	printf("Task 2: release_time(%.2f) | period(%.2f)  | execution_time(%.2f) | deadline(%.2f)\n",
 		   pdMS_TO_TICKS(90)/10.0, pdMS_TO_TICKS(50)/10.0, pdMS_TO_TICKS(20)/10.0, pdMS_TO_TICKS(140)/10.0);
-	printf("Task 3: start(%.2f) | period(%.2f) | execution_time(%.2f) | deadline(%.2f)\n",
+	printf("Task 3: release_time(%.2f) | period(%.2f) | execution_time(%.2f) | deadline(%.2f)\n",
 		   pdMS_TO_TICKS(30)/10.0, pdMS_TO_TICKS(170)/10.0, pdMS_TO_TICKS(25)/10.0, pdMS_TO_TICKS(200)/10.0);
-	printf("\nRunning the tasks in 'Shortest Job Fist(FIFO)' execution model ...\n\n");
+	printf("\nRunning the tasks in 'FIFO' execution model ...\n\n");
 	vTaskStartScheduler();
 	return 0;
 }
