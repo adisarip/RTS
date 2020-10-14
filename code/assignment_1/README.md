@@ -4,8 +4,6 @@ Real Time Systems (Assigment-1):
 
 **Q1:** Write a piece of code for 3 tasks t1, t2, t3 in FreeRTOS with approximate execution times 𝑒1, 𝑒2, 𝑒3 (in msec) respectively as shown in the figure below. Schedule the tasks using the FIFO scheduling mechanism considering the following arrival times. Please show a screenshot of the task execution start times and end times as the result. **Additionally, you can record how many tasks violate the deadline.**
 
-![Alt text](../../images/q1.jpeg?raw=true "Q1 Task Set")
-
 <p align="center">
   <img src="../../images/q1.jpeg" />
 </p>
