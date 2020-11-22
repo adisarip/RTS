@@ -84,8 +84,10 @@ void run_comm_task(void* task_data)
     {
         ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
         printf("[COMMUNICATION] Sending Data ...\n");
+        fflush(stdout);
         delay(200); // a smaller delay loop for faster completion
         printf("[COMMUNICATION] Data Sent !!!\n");
+        fflush(stdout);
         delay(200);
         xTaskNotifyGive(xTask1);
     }
@@ -101,6 +103,7 @@ int main (void)
     printf("- Communication Task:  200 Units\n");
     printf("- For every 1000 units of Computation work Communication task is executed\n");
     printf("-----------------\n");
+    fflush(stdout);
     xTaskCreate(run_comp_task, "Task 1", 1024, NULL, tskIDLE_PRIORITY, &xTask1);
     xTaskCreate(run_comm_task, "Task 2", 1024, NULL, tskIDLE_PRIORITY, &xTask2);
     vTaskStartScheduler();
