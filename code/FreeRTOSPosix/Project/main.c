@@ -2,106 +2,120 @@
 /* Standard includes. */
 #include <stdio.h>
 #include <stdlib.h>
-#include "FreeRTOS.h"		/* RTOS firmware */
-#include "task.h"			/* Task */
+#include "FreeRTOS.h"        /* RTOS firmware */
+#include "task.h"            /* Task */
 #include "timers.h"
 
-typedef struct TaskData Task;
-void init(Task*,unsigned int,unsigned int,TickType_t,TickType_t,TickType_t);
-void print_task_data(Task*);
-void run_task(void*);
+#define ll long long
+#define COMPUTE_COUNT 1000
+#define MAX_COMPUTE_COUNT 5000
 
-struct TaskData
-{
-	// Data
-	unsigned int id;
-	unsigned int priority;
-	TickType_t   release_time;
-	TickType_t   period;
-	TickType_t   execution_time;
-};
+// Task Handles
+static TaskHandle_t xTask1 = NULL;
+static TaskHandle_t xTask2 = NULL;
 
-void init(Task* pTask,
-		  unsigned int _id,
-		  unsigned int _priority,
-		  TickType_t _release_time,
-		  TickType_t _period,
-		  TickType_t _execution_time)
+// function declarations
+void delay(int N);
+void run_comp_task(void*);
+void run_comm_task(void*);
+
+
+// function definitions
+
+// Performing some arithmentic computations to add some delay
+void delay(int N)
 {
-	pTask->id             = _id;
-	pTask->priority       = _priority;
-	pTask->release_time   = _release_time;
-	pTask->period         = _period;
-	pTask->execution_time = _execution_time;
+    ll count = 0;
+    for (ll h=1; h <= N; h++)
+    {
+        for (ll i=1; i <= N; i++)
+        {
+            for (ll j=1; j <= N; j++)
+            {
+                for (ll k=1; k <= N; k++)
+                {
+                    count += k;
+                }
+                count += j % count;
+            }
+            count += i % count;
+        }
+        count += h % count;
+    }
 }
 
-void print_task_data(Task* pTask)
+// The computation task will run for longer duration
+// resembling some huge computations.
+// In here I will try to implement some long arithemetic computations loop
+void run_comp_task(void* task_data)
 {
-	printf("\nTask %u: release_time(%d) | period(%2d) | execution_time(%2d) | priority(%u)",
-		   pTask->id,
-		   pTask->release_time,
-		   pTask->period,
-		   pTask->execution_time,
-		   pTask->priority);
-}
-
-void run_task(void* parameter)
-{
-	Task* pTask = (Task*) parameter;
-	TickType_t current_tick_count = xTaskGetTickCount();
-	printf("Task %u : priority(%u) : released at -> %d | Execution started at -> %d\n",
-		   pTask->id, pTask->priority, pTask->release_time, current_tick_count);
-
-	// Start task execution
+    task_data = NULL;
+    int n_count = COMPUTE_COUNT;
+    int max_computations = MAX_COMPUTE_COUNT;
+    int n_computations = 0;
+    // Start task execution
     while (1)
-	{
-		TickType_t tick_count = xTaskGetTickCount();
-		if (tick_count >= current_tick_count + pTask->execution_time)
-		{
-			printf("Task %u : Response Time : %d\n", pTask->id, tick_count);
-			if (tick_count > pTask->period)
-			{
-				printf("Task %u : DEADLINE VIOLATION !!!\n", pTask->id);
-			}
-			break;
-		}
-	}
-	vTaskDelete(NULL);
+    {
+        if (n_computations < max_computations)
+        {
+            delay(n_count);
+            n_computations += n_count;
+            printf("[COMPUTATION]   Completed = %d : Remaining = %d\n", n_computations, max_computations - n_computations);
+            fflush(stdout);
+            xTaskNotifyGive(xTask2);
+            ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+        }
+        else
+        {
+            printf("[COMPUTATION]   All Computations completed !!!\n");
+            fflush(stdout);
+            break;
+        }
+    }
+    vTaskDelete(NULL);
 }
 
-int main ( void )
+// Communication Task
+void run_comm_task(void* task_data)
 {
-	// Create 4 task objects
-	Task sTask1, sTask2, sTask3, sTask4;
-	init(&sTask1, 1, 4, pdMS_TO_TICKS(0), pdMS_TO_TICKS(8),  pdMS_TO_TICKS(3));
-	init(&sTask2, 2, 2, pdMS_TO_TICKS(0), pdMS_TO_TICKS(15), pdMS_TO_TICKS(8));
-	init(&sTask3, 3, 3, pdMS_TO_TICKS(0), pdMS_TO_TICKS(20), pdMS_TO_TICKS(4));
-	init(&sTask4, 4, 1, pdMS_TO_TICKS(0), pdMS_TO_TICKS(22), pdMS_TO_TICKS(10));
-	print_task_data(&sTask1);
-	print_task_data(&sTask2);
-	print_task_data(&sTask3);
-	print_task_data(&sTask4);
-	printf("\n\nRunning the tasks in 'Shortest Job First' execution model ...\n\n");
+    task_data = NULL;
+    // Start task execution
+    while (1)
+    {
+        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+        printf("[COMMUNICATION] Sending Data ...\n");
+        delay(200); // a smaller delay loop for faster completion
+        printf("[COMMUNICATION] Data Sent !!!\n");
+        delay(200);
+        xTaskNotifyGive(xTask1);
+    }
+    vTaskDelete(NULL);
+}
 
-	// Scheduling the tasks
-	xTaskCreate(run_task, "Task 1", 1024, (void*) &sTask1, sTask1.priority, NULL);
-	xTaskCreate(run_task, "Task 2", 1024, (void*) &sTask2, sTask2.priority, NULL);
-	xTaskCreate(run_task, "Task 3", 1024, (void*) &sTask3, sTask3.priority, NULL);
-	xTaskCreate(run_task, "Task 4", 1024, (void*) &sTask4, sTask4.priority, NULL);
-	vTaskStartScheduler();
-
-	return 0;
+int main (void)
+{
+    printf("\n");
+    printf("Workflow Summary:\n");
+    printf("-----------------\n");
+    printf("- Computation   Task: 5000 Units\n");
+    printf("- Communication Task:  200 Units\n");
+    printf("- For every 1000 units of Computation work Communication task is executed\n");
+    printf("-----------------\n");
+    xTaskCreate(run_comp_task, "Task 1", 1024, NULL, tskIDLE_PRIORITY, &xTask1);
+    xTaskCreate(run_comm_task, "Task 2", 1024, NULL, tskIDLE_PRIORITY, &xTask2);
+    vTaskStartScheduler();
+    return 0;
 }
 
 /*-----------------------------------------------------------*/
 
 void vAssertCalled( unsigned long ulLine, const char * const pcFileName )
 {
- 	taskENTER_CRITICAL();
-	{
+     taskENTER_CRITICAL();
+    {
         printf("[ASSERT] %s:%lu\n", pcFileName, ulLine);
         fflush(stdout);
-	}
-	taskEXIT_CRITICAL();
-	exit(-1);
+    }
+    taskEXIT_CRITICAL();
+    exit(-1);
 }
