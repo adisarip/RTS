@@ -6,7 +6,7 @@
 
 
 #### Solution Approach
->
+
 - Enable notifications by setting 'configUSE_TASK_NOTIFICATIONS' to 1 in FreeRTOSConfig.h
 - Create two static tasks (T1 & T2) with IDLE priorities
 - T1 will be the computation task which has a long computation workload
@@ -15,8 +15,8 @@
 - After a fixed number of computational units of T1, T1 will notify T2 to execute and will wait for a notification from T2.
 - T2 will be waiting for the notification from T1. Once received, it will execute and notify back to T1 after completion and wait.
 - T1 will again execute for another fixed number of computational units and notify T2 and wait.
-- T2 will again execute once it receives the notification from T1 and after completion notify back and wait.
-... and so on ...
+- T2 will again execute once it receives the notification from T1 and after completion notify back and wait.  
+... and so on ...  
 - Once T1 reaches it total computational units the execution halts
 
 
