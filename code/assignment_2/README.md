@@ -6,7 +6,7 @@
 
 
 #### Solution Approach
-
+>
 - Enable notifications by setting 'configUSE_TASK_NOTIFICATIONS' to 1 in FreeRTOSConfig.h
 - Create two static tasks (T1 & T2) with IDLE priorities
 - T1 will be the computation task which has a long computation workload
