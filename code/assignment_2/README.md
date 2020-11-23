@@ -76,8 +76,8 @@ FreeRTOSPosix$
 ```
 
 
-# Q2
->There are 3 tasks with priorities and execution times as shown in the figure below. Please implement the priority inheritance protocol. *(Hint: Use Notifications and Priority Changes).*
+### Q2
+>There are 3 tasks with priorities and execution times as shown in the figure below. Please implement the **priority inheritance** protocol. *(Hint: Use Notifications and Priority Changes).*
 
 
 <p align="center">
