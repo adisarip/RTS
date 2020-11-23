@@ -1,10 +1,10 @@
 
 Real Time Systems (Assignment-2):
 =================================
-**Q1:** Create the two tasks in FreeRTOS. The first task should occupy the processor for a long time – you can create a task with a very long delay in the task code. Generally, this can be considered as a computation task (such as a large matrix multiplication task) on an embedded system, which occupies the processor for most of the time. There is another task which is a communication task, which needs to send data every time a certain number of computations/time duration elapses (say 100 computations). Implement triggering of communication task from the computation task *(Hint: Use Notifications).*
+<h3>Q1:<h3> Create the two tasks in FreeRTOS. The first task should occupy the processor for a long time – you can create a task with a very long delay in the task code. Generally, this can be considered as a computation task (such as a large matrix multiplication task) on an embedded system, which occupies the processor for most of the time. There is another task which is a communication task, which needs to send data every time a certain number of computations/time duration elapses (say 100 computations). Implement triggering of communication task from the computation task *(Hint: Use Notifications).*
 
 
-<h4>Q1 Solution Approach:</h4>
+<h4>Solution Approach:</h4>
 
 - Enable notifications by setting 'configUSE_TASK_NOTIFICATIONS' to 1 in FreeRTOSConfig.h
 - Create two static tasks (T1 & T2) with IDLE priorities
@@ -15,7 +15,9 @@ Real Time Systems (Assignment-2):
 - T2 will be waiting for the notification from T1. Once received, it will execute and notify back to T1 after completion and wait.
 - T1 will again execute for another fixed number of computational units and notify T2 and wait.
 - T2 will again execute once it receives the notification from T1 and after completion notify back and wait.
+
 ... and so on ...
+
 - Once T1 reaches it total computational units the execution halts
 
 
