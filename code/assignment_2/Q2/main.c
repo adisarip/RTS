@@ -44,7 +44,7 @@ struct TaskData
     TickType_t release_time;
     TickType_t execution_time;
     TickType_t resource_start_time;
-    TickType_t resource_end_time;
+    TickType_t resource_duration;
 };
 
 enum
@@ -70,53 +70,68 @@ void run_task1(void* data)
     // Adjust the release time
     vTaskDelay(pTaskData->release_time);
     TickType_t current_tick_count = xTaskGetTickCount();
-    printf("[Task %u] : [t=%02d] : priority(%u) : Release Time (%d)\n",
-           pTaskData->id, current_tick_count/100, pTaskData->priority, pTaskData->release_time/100);
 
     // Start task execution
     UBaseType_t xPriority1;
     UBaseType_t xPriority2;
     UBaseType_t xPriority3;
     TickType_t tick_count = 0;
-    TickType_t prev_tick_count = 1;
+    TickType_t prev_tick_count = 0;
+    uint isFirstPass = 1;
+    TickType_t delta_ticks = 0;
     BaseType_t xSemaphoreFlag = pdFAIL;
     while (1)
     {
         tick_count = xTaskGetTickCount();
-        if (prev_tick_count != tick_count && tick_count%100 == 0)
+        if ((prev_tick_count != tick_count || isFirstPass) && tick_count%100 == 0)
         {
             xPriority1 = uxTaskPriorityGet(xTask1);
             xPriority2 = uxTaskPriorityGet(xTask2);
             xPriority3 = uxTaskPriorityGet(xTask3);
-            printf("[Task %u] : [t=%02d] : [P1=%lu P2=%lu P3=%lu]\n", pTaskData->id, tick_count/100, xPriority1,xPriority2,xPriority3);
+            if (isFirstPass)
+            {
+                printf("[Task %u] : [t=%02d] : [P1=%lu P2=%lu P3=%lu] Release Time (%d)\n",
+                       pTaskData->id, tick_count/100, xPriority1, xPriority2, xPriority3, pTaskData->release_time/100);
+            }
+            else
+            {
+                printf("[Task %u] : [t=%02d] : [P1=%lu P2=%lu P3=%lu]\n",
+                       pTaskData->id, tick_count/100, xPriority1, xPriority2, xPriority3);
+            }
             prev_tick_count = tick_count;
+            isFirstPass = 0;
         }
         if (tick_count >= current_tick_count + pTaskData->execution_time)
         {
             printf("[Task %u] : [t=%02d] : Execution ended.\n", pTaskData->id, tick_count/100);
             break;
         }
-        else if (tick_count >= pTaskData->resource_end_time && pdPASS == xSemaphoreFlag)
+        else if (tick_count >= current_tick_count + pTaskData->resource_start_time + pTaskData->resource_duration &&
+                 pdPASS == xSemaphoreFlag)
         {
             // release the semaphore
             printf("[Task %u] : [t=%02d] : Resource %d released\n", pTaskData->id, tick_count/100, xSharedResource);
             xSemaphoreGive(xSemaphore);
             xSemaphoreFlag = pdFAIL;
         }
-        else if (tick_count == pTaskData->resource_start_time && pdFAIL == xSemaphoreFlag)
+        else if (tick_count == current_tick_count + pTaskData->resource_start_time &&
+                 pdFAIL == xSemaphoreFlag)
         {
             // acquire lock on the shared resource
             // If lock not acquired then wait until you get the lock on the resource
             printf("[Task %u] : [t=%02d] : Resource Requested\n", pTaskData->id, tick_count/100);
+            delta_ticks = xTaskGetTickCount();
             xSemaphoreFlag = xSemaphoreTake(xSemaphore, portMAX_DELAY);
             if (pdPASS == xSemaphoreFlag)
             {
                 // Lock acquired by on the semaphore
                 // work with the shared resource
                 tick_count = xTaskGetTickCount();
+                delta_ticks = tick_count - delta_ticks;
+                current_tick_count = current_tick_count + delta_ticks;
                 xSharedResource = TASK1;
                 printf("[Task %u] : [t=%02d] : Resource acquired : Set Resource Value in Task %u : %d\n",
-                        pTaskData->id, tick_count/100, pTaskData->id, xSharedResource);
+                       pTaskData->id, tick_count/100, pTaskData->id, xSharedResource);
             }
         }
     }
@@ -130,25 +145,34 @@ void run_task2(void* data)
     // Adjust the release time
     vTaskDelay(pTaskData->release_time);
     TickType_t current_tick_count = xTaskGetTickCount();
-    printf("[Task %u] : [t=%02d] : priority(%u) : Release Time (%d)\n",
-           pTaskData->id, current_tick_count/100, pTaskData->priority, pTaskData->release_time/100);
 
     // Start task execution
     UBaseType_t xPriority1;
     UBaseType_t xPriority2;
     UBaseType_t xPriority3;
     TickType_t tick_count = 0;
-    TickType_t prev_tick_count = 1;
+    TickType_t prev_tick_count = 0;
+    uint isFirstPass = 1;
     while (1)
     {
         tick_count = xTaskGetTickCount();
-        if (prev_tick_count != tick_count && tick_count%100 == 0)
+        if ((prev_tick_count != tick_count || isFirstPass) && tick_count%100 == 0)
         {
             xPriority1 = uxTaskPriorityGet(xTask1);
             xPriority2 = uxTaskPriorityGet(xTask2);
             xPriority3 = uxTaskPriorityGet(xTask3);
-            printf("[Task %u] : [t=%02d] : [P1=%lu P2=%lu P3=%lu]\n", pTaskData->id, tick_count/100, xPriority1,xPriority2,xPriority3);
+            if (isFirstPass)
+            {
+                printf("[Task %u] : [t=%02d] : [P1=%lu P2=%lu P3=%lu] Release Time (%d)\n",
+                       pTaskData->id, tick_count/100, xPriority1, xPriority2, xPriority3, pTaskData->release_time/100);
+            }
+            else
+            {
+                printf("[Task %u] : [t=%02d] : [P1=%lu P2=%lu P3=%lu]\n",
+                       pTaskData->id, tick_count/100, xPriority1, xPriority2, xPriority3);
+            }
             prev_tick_count = tick_count;
+            isFirstPass = 0;
         }
         if (tick_count >= current_tick_count + pTaskData->execution_time)
         {
@@ -165,50 +189,70 @@ void run_task3(void* data)
     TaskData* pTaskData = (TaskData*)data;
     // No release time adjustment needed - as release time is "t = 0"
     TickType_t current_tick_count = xTaskGetTickCount();
-    printf("[Task %u] : [t=%02d] : priority(%u) : Release Time (%d)\n",
-           pTaskData->id, current_tick_count/100, pTaskData->priority, pTaskData->release_time/100);
 
     // Start task execution
     UBaseType_t xPriority1;
     UBaseType_t xPriority2;
     UBaseType_t xPriority3;
     TickType_t tick_count = 0;
-    TickType_t prev_tick_count = 1;
+    TickType_t prev_tick_count = 0;
+    uint isFirstPass = 1;
+    TickType_t delta_ticks = 0;
     BaseType_t xSemaphoreFlag = pdFAIL;
     while (1)
     {
         tick_count = xTaskGetTickCount();
-        if (prev_tick_count != tick_count && tick_count%100 == 0)
+        if ((prev_tick_count != tick_count || isFirstPass) && tick_count%100 == 0)
         {
             xPriority1 = uxTaskPriorityGet(xTask1);
             xPriority2 = uxTaskPriorityGet(xTask2);
             xPriority3 = uxTaskPriorityGet(xTask3);
-            printf("[Task %u] : [t=%02d] : [P1=%lu P2=%lu P3=%lu]\n", pTaskData->id, tick_count/100, xPriority1,xPriority2,xPriority3);
+            if (isFirstPass)
+            {
+                printf("[Task %u] : [t=%02d] : [P1=%lu P2=%lu P3=%lu] Release Time (%d)\n",
+                       pTaskData->id, tick_count/100, xPriority1, xPriority2, xPriority3, pTaskData->release_time/100);
+            }
+            else
+            {
+                printf("[Task %u] : [t=%02d] : [P1=%lu P2=%lu P3=%lu]\n",
+                       pTaskData->id, tick_count/100, xPriority1, xPriority2, xPriority3);
+            }
+            if (tick_count/100 - prev_tick_count/100 > 1 && isFirstPass == 0)
+            {
+                current_tick_count += tick_count - prev_tick_count - 100;
+            }
             prev_tick_count = tick_count;
+            isFirstPass = 0;
         }
         if (tick_count >= current_tick_count + pTaskData->execution_time)
         {
             printf("[Task %u] : [t=%02d] : Execution ended.\n", pTaskData->id, tick_count/100);
             break;
         }
-        else if (tick_count >= pTaskData->resource_end_time && pdPASS == xSemaphoreFlag)
+        else if (tick_count >= current_tick_count + pTaskData->resource_start_time + pTaskData->resource_duration &&
+                 pdPASS == xSemaphoreFlag)
         {
             // release the semaphore
             printf("[Task %u] : [t=%02d] : Resource %d released\n", pTaskData->id, tick_count/100, xSharedResource);
             xSemaphoreGive(xSemaphore);
             xSemaphoreFlag = pdFAIL;
+            current_tick_count = current_tick_count + 100;
         }
-        else if (tick_count == pTaskData->resource_start_time && pdFAIL == xSemaphoreFlag)
+        else if (tick_count == current_tick_count + pTaskData->resource_start_time &&
+                 pdFAIL == xSemaphoreFlag)
         {
             // acquire lock on the shared resource
             // If lock not acquired then wait until you get the lock on the resource
             printf("[Task %u] : [t=%02d] : Resource Requested\n", pTaskData->id, tick_count/100);
+            delta_ticks = xTaskGetTickCount();
             xSemaphoreFlag = xSemaphoreTake(xSemaphore, portMAX_DELAY);
             if (pdPASS == xSemaphoreFlag)
             {
                 // Lock acquired by on the semaphore
                 // work with the shared resource
                 tick_count = xTaskGetTickCount();
+                delta_ticks = tick_count - delta_ticks;
+                current_tick_count = current_tick_count + delta_ticks;
                 xSharedResource = TASK3;
                 printf("[Task %u] : [t=%02d] : Resource acquired : Set Resource Value in Task %u : %d\n",
                        pTaskData->id, tick_count/100, pTaskData->id, xSharedResource);
@@ -224,14 +268,14 @@ void init(TaskData* pTaskData,
           TickType_t _release_time,
           TickType_t _execution_time,
           TickType_t _resource_start_time,
-          TickType_t _resource_end_time)
+          TickType_t _resource_duration)
 {
     pTaskData->id = _id;
     pTaskData->priority = _priority;
     pTaskData->release_time = _release_time;
     pTaskData->execution_time = _execution_time;
     pTaskData->resource_start_time = _resource_start_time;
-    pTaskData->resource_end_time = _resource_end_time;
+    pTaskData->resource_duration = _resource_duration;
 }
 
 int main (void)
@@ -244,10 +288,10 @@ int main (void)
     fflush(stdout);
 
     TaskData sTaskData1, sTaskData2, sTaskData3;
-    //    function,  id, priority,   release time,       execution time,     resource start,     resource end
-    init(&sTaskData1, 1,    3,     pdMS_TO_TICKS(200), pdMS_TO_TICKS(800),  pdMS_TO_TICKS(300), pdMS_TO_TICKS(900));
-    init(&sTaskData2, 2,    2,     pdMS_TO_TICKS(500), pdMS_TO_TICKS(500),  pdMS_TO_TICKS(000), pdMS_TO_TICKS(000));
-    init(&sTaskData3, 3,    1,     pdMS_TO_TICKS(000), pdMS_TO_TICKS(1600), pdMS_TO_TICKS(100), pdMS_TO_TICKS(700));
+    //    function,  id, priority,   release time,       execution time,     resource start,   resource duration
+    init(&sTaskData1, 1,    3,     pdMS_TO_TICKS(200), pdMS_TO_TICKS(400), pdMS_TO_TICKS(100), pdMS_TO_TICKS(200));
+    init(&sTaskData2, 2,    2,     pdMS_TO_TICKS(500), pdMS_TO_TICKS(500), pdMS_TO_TICKS(000), pdMS_TO_TICKS(000));
+    init(&sTaskData3, 3,    1,     pdMS_TO_TICKS(000), pdMS_TO_TICKS(700), pdMS_TO_TICKS(100), pdMS_TO_TICKS(500));
     xTaskCreate(run_task1, "Task 1", 1024, (void*) &sTaskData1, sTaskData1.priority, &xTask1);
     xTaskCreate(run_task2, "Task 2", 1024, (void*) &sTaskData2, sTaskData2.priority, &xTask2);
     xTaskCreate(run_task3, "Task 3", 1024, (void*) &sTaskData3, sTaskData3.priority, &xTask3);
