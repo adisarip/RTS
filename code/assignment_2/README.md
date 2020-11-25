@@ -83,3 +83,82 @@ FreeRTOSPosix$
 <p align="center">
   <img src="./images/a2q2.png" />
 </p>
+
+#### Solution Approach
+
+- The Taskset contains of 3 Tasks {Task1, Task2, Task 3}.
+- The priorities of the tasks are P1 > P2 > P3 {P1=3, P2=2, P3=1}.
+- The release times of the Tasks are {T1=2, T2=5, T3=0}.
+- Task 1 and Task 3 are having critical sections of [R;2] & [R;5] respectively.
+- If a Task has acquired a mutex lock on the shared resource, then when another high priority task try to acquire the lock on the resource, "Priority Inheritance" occurs. The Task holding the mutex (Task 3) for the resource will be temporarily inherit the priority of the higher priority task (Task 1) and execute. Once the resource utilization is complete the Task 3 will release the mutex lock on the resource and the lock is immediately acquired by the higher priority task (Task 1).
+ - In the current implementation I have used Semaphore Mutex locks to acquire the shared resource.
+ - Also the log messages are meticulously designed to display the whole scheduling flow with Priority Inheritance.
+ - At t=3 one can clearly see the Inheritance of priority by the Task 3 (P3=1 -> P3=3).
+ - At t=7 again the priority of Task 3 changes back to 1 (P3=3 -> P3=1).
+
+
+#### Compilation Run
+ ```
+ FreeRTOSPosix$ make clean; make
+ --------------
+ CLEAN COMPLETE
+ --------------
+ >> Compiling croutine.c
+ >> Compiling event_groups.c
+ >> Compiling list.c
+ >> Compiling queue.c
+ >> Compiling tasks.c
+ >> Compiling timers.c
+ >> Compiling heap_3.c
+ >> Compiling port.c
+ >> Compiling main.c
+ >> Linking FreeRTOSPosix...
+ -------------------------
+ BUILD COMPLETE: FreeRTOSPosix
+ -------------------------
+ FreeRTOSPosix$
+ ```
+
+
+#### Execution Run
+ ```
+ FreeRTOSPosix$ ./FreeRTOSPosix
+
+ Priority Inheritance Protocol Using "Semaphore Mutex" in FreeRTOS:
+ ------------------------------------------------------------------
+ Running as PID: 11059
+ Timer Resolution for Run TimeStats is 100 ticks per second.
+ [Task 3] : [t=00] : [P1=3 P2=2 P3=1] Release Time (0)
+ [Task 3] : [t=01] : [P1=3 P2=2 P3=1]
+ [Task 3] : [t=01] : Resource Requested
+ [Task 3] : [t=01] : Resource acquired : Set Resource Value in Task 3 : 1003
+ [Task 1] : [t=02] : [P1=3 P2=2 P3=1] Release Time (2)
+ [Task 1] : [t=03] : [P1=3 P2=2 P3=1]
+ [Task 1] : [t=03] : Resource Requested
+ [Task 3] : [t=03] : [P1=3 P2=2 P3=3]
+ [Task 3] : [t=04] : [P1=3 P2=2 P3=3]
+ [Task 3] : [t=05] : [P1=3 P2=2 P3=3]
+ [Task 3] : [t=06] : [P1=3 P2=2 P3=3]
+ [Task 3] : [t=07] : [P1=3 P2=2 P3=3]
+ [Task 3] : [t=07] : Resource 1003 released
+ [Task 1] : [t=07] : Resource acquired : Set Resource Value in Task 1 : 1001
+ [Task 1] : [t=07] : [P1=3 P2=2 P3=1]
+ [Task 1] : [t=08] : [P1=3 P2=2 P3=1]
+ [Task 1] : [t=09] : [P1=3 P2=2 P3=1]
+ [Task 1] : [t=09] : Resource 1001 released
+ [Task 1] : [t=10] : [P1=3 P2=2 P3=1]
+ [Task 1] : [t=10] : Execution ended.
+ [Task 2] : [t=10] : [P1=3 P2=2 P3=1] Release Time (5)
+ [Task 2] : [t=11] : [P1=3 P2=2 P3=1]
+ [Task 2] : [t=12] : [P1=3 P2=2 P3=1]
+ [Task 2] : [t=13] : [P1=3 P2=2 P3=1]
+ [Task 2] : [t=14] : [P1=3 P2=2 P3=1]
+ [Task 2] : [t=15] : [P1=3 P2=2 P3=1]
+ [Task 2] : [t=15] : Execution ended.
+ [Task 3] : [t=15] : [P1=3 P2=2 P3=1]
+ [Task 3] : [t=16] : [P1=3 P2=2 P3=1]
+ [Task 3] : [t=16] : Execution ended.
+ ^C
+ FreeRTOSPosix$
+
+ ```

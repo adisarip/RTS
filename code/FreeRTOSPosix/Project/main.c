@@ -281,10 +281,8 @@ void init(TaskData* pTaskData,
 int main (void)
 {
     printf("\n");
-    printf("Workflow Summary:\n");
-    printf("-----------------\n");
-    printf("- TBD\n");
-    printf("-----------------\n");
+    printf("Priority Inheritance Protocol Using \"Semaphore Mutex\" in FreeRTOS:\n");
+    printf("------------------------------------------------------------------\n");
     fflush(stdout);
 
     TaskData sTaskData1, sTaskData2, sTaskData3;
