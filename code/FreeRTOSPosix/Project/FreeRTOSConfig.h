@@ -32,6 +32,7 @@
 #define configUSE_COUNTING_SEMAPHORES			1
 #define configUSE_ALTERNATIVE_API				0
 //#define configMAX_SYSCALL_INTERRUPT_PRIORITY	1
+#define configSUPPORT_DYNAMIC_ALLOCATION    1
 
 #define configUSE_QUEUE_SETS					1
 #define configUSE_TASK_NOTIFICATIONS			1
