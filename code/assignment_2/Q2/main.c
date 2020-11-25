@@ -63,6 +63,7 @@ void run_task2(void* data);
 void run_task3(void* data);
 
 // function definitions
+
 void run_task1(void* data)
 {
     // get the task data
@@ -72,6 +73,7 @@ void run_task1(void* data)
     TickType_t current_tick_count = xTaskGetTickCount();
 
     // Start task execution
+    UBaseType_t xOrigPriority = uxTaskPriorityGet(NULL);
     UBaseType_t xPriority1;
     UBaseType_t xPriority2;
     UBaseType_t xPriority3;
@@ -109,10 +111,16 @@ void run_task1(void* data)
         else if (tick_count >= current_tick_count + pTaskData->resource_start_time + pTaskData->resource_duration &&
                  pdPASS == xSemaphoreFlag)
         {
+            UBaseType_t xCurrPriority = uxTaskPriorityGet(NULL);
+            if (xCurrPriority > xOrigPriority)
+            {
+                current_tick_count = current_tick_count + 100;
+            }
             // release the semaphore
             printf("[Task %u] : [t=%02d] : Resource %d released\n", pTaskData->id, tick_count/100, xSharedResource);
             xSemaphoreGive(xSemaphore);
             xSemaphoreFlag = pdFAIL;
+
         }
         else if (tick_count == current_tick_count + pTaskData->resource_start_time &&
                  pdFAIL == xSemaphoreFlag)
@@ -191,6 +199,7 @@ void run_task3(void* data)
     TickType_t current_tick_count = xTaskGetTickCount();
 
     // Start task execution
+    UBaseType_t xOrigPriority = uxTaskPriorityGet(NULL);
     UBaseType_t xPriority1;
     UBaseType_t xPriority2;
     UBaseType_t xPriority3;
@@ -232,11 +241,15 @@ void run_task3(void* data)
         else if (tick_count >= current_tick_count + pTaskData->resource_start_time + pTaskData->resource_duration &&
                  pdPASS == xSemaphoreFlag)
         {
+            UBaseType_t xCurrPriority = uxTaskPriorityGet(NULL);
+            if (xCurrPriority > xOrigPriority)
+            {
+                current_tick_count = current_tick_count + 100;
+            }
             // release the semaphore
             printf("[Task %u] : [t=%02d] : Resource %d released\n", pTaskData->id, tick_count/100, xSharedResource);
             xSemaphoreGive(xSemaphore);
             xSemaphoreFlag = pdFAIL;
-            current_tick_count = current_tick_count + 100;
         }
         else if (tick_count == current_tick_count + pTaskData->resource_start_time &&
                  pdFAIL == xSemaphoreFlag)
