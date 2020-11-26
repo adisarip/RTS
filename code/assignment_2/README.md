@@ -90,7 +90,7 @@ FreeRTOSPosix$
 - The priorities of the tasks are P1 > P2 > P3 {P1=3, P2=2, P3=1}.
 - The release times of the Tasks are {T1=2, T2=5, T3=0}.
 - Task 1 and Task 3 are having critical sections of [R;2] & [R;5] respectively.
-- If a Task acquired a mutex lock on the shared resource, then when another high priority task try to acquire the lock on the same resource, "Priority Inheritance" occurs. The Task holding the mutex (Task 3) for the resource will temporarily inherit the priority of the high priority task (Task 1) and execute. Once the resource usage is complete the lower priority task (Task 3) will release the mutex lock on the resource and the lock is immediately acquired by the higher priority task (Task 1). The lower priority task is retains its original priority.
+- The priority of a task that holds a mutex (Task 3) will be raised if another task of higher priority (Task 1) attempts to obtain the same mutex. The task that already holds the mutex is said to ‘inherit’ the priority of the task that is attempting to ‘take’ the same mutex. The inherited priority will be ‘disinherited’ when the mutex is returned (the task that inherited a higher priority while it held a mutex will return to its original priority when the mutex is returned).
  - In the current implementation I have used Semaphore Mutex locks to acquire the shared resource.
  - Also the log messages are meticulously designed to display the whole scheduling flow with Priority Inheritance.
  - At t=3 one can clearly see the Inheritance of priority by the Task 3 (P3=1 -> P3=3).
