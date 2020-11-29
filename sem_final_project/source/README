@@ -1,0 +1,80 @@
+
+
+Compilation Run:
+================
+source$ mcm
+Cleaning all the object files and binaries.
+rm -f core ./obj/FPDS.o ./obj/TestFPDS.o ./bin/fpds
+g++ -Wall -std=c++1z -c src/FPDS.C -o obj/FPDS.o
+Compiled src/FPDS.C successfully.
+g++ -Wall -std=c++1z -c src/TestFPDS.C -o obj/TestFPDS.o
+Compiled src/TestFPDS.C successfully.
+g++ ./obj/FPDS.o ./obj/TestFPDS.o -o bin/fpds
+Linking Complete.
+To start the "FPDS Computing" run --> ./bin/fpds
+source$
+
+
+Execution Runs:
+===============
+
+source$ ./bin/fpds
+[ERROR] Input File Missing.
+[USAGE] ./bin/fpds <taskset_input_file>
+source$
+
+
+Run-1:
+------
+Input Data (taskset.txt):
+1,250,100,175
+2,400,100,300
+3,350,100,325
+
+source$ ./bin/fpds taskset.txt
+Initial Order of Taskset : P(1) > P(2) > P(3)
+Taskset is SCHEDULABLE !!!
+Final Schedulable Order of Taskset : P(1) > P(3) > P(2)
+source$
+
+
+Run-2:
+------
+Input Data (taskset.txt):
+2,400,100,300
+3,350,100,325
+1,250,100,175
+
+source$ ./bin/fpds taskset.txt
+Initial Order of Taskset : P(2) > P(3) > P(1)
+Taskset is SCHEDULABLE !!!
+Final Schedulable Order of Taskset : P(1) > P(3) > P(2)
+source$
+
+
+Run-3:
+------
+Input Data (taskset.txt):
+3,350,100,325
+2,400,100,300
+1,250,100,175
+
+source$ ./bin/fpds taskset.txt
+Initial Order of Taskset : P(3) > P(2) > P(1)
+Taskset is SCHEDULABLE !!!
+Final Schedulable Order of Taskset : P(1) > P(3) > P(2)
+source$
+
+
+Run-4:
+------
+Input Data (taskset.txt):
+3,350,100,325
+1,250,100,175
+2,400,100,300
+
+source$ ./bin/fpds taskset.txt
+Initial Order of Taskset : P(3) > P(1) > P(2)
+Taskset is SCHEDULABLE !!!
+Final Schedulable Order of Taskset : P(1) > P(3) > P(2)
+source$

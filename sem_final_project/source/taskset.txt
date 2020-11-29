@@ -1,0 +1,5 @@
+# Task set for running FNR-PA Algorithm for FPDS scheduling
+# task_id, task_period, task_execution_time, task_relative_deadline
+3,350,100,325
+1,250,100,175
+2,400,100,300

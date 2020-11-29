@@ -7,11 +7,14 @@
 #ifndef FPDS_H
 #define FPDS_H
 
+#include <map>
 #include <vector>
+#include <string>
 using namespace std;
 
 struct Task
 {
+    int id;
     int period;
     int execution_time;
     int deadline;
@@ -20,25 +23,28 @@ struct Task
 class FPDS
 {
   public:
-    FPDS();
+    FPDS(string file);
     ~FPDS();
 
     // generate taskset
-    void computePriorityOrder();
+    bool computeOptimalPriorityOrder();
+    void displayPriorityOrder();
 
     // protected
   protected:
-    void pCreateTaskSet();
+    void pReadTaskSet();
+    vector<string> pSplit(const string& s, char delimiter);
     int pGetBlockingPeriod(int level);
     int pGetPriorityLevelActivePeriod(int level);
-    int pGetFNRLength(int index, int level);
-    void pGetHighPoints(vector<int>& hPoints, int g, int index, int level, int activePeriod);
+    int pGetMinFNRTask(int index, int level, int& minFNRValue);
+    vector<int> pGetHighPoints(int g, int index, int level, int activePeriod);
 
     // data
   private:
+    string iFile;
     int mTaskCount;
     vector<Task> mTaskSet;
-    vector<int> mFNRLength;
+    map<int, int> mFinalFNRLength; // map <level, FNR>
 };
 
 #endif // FPDS_H
