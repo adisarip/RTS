@@ -4,6 +4,7 @@
 #include <cmath>
 #include <climits>
 #include <algorithm>
+#include <numeric>
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -15,6 +16,7 @@ FPDS::FPDS(string file)
     pReadTaskSet();
     mTaskCount = (int)mTaskSet.size();
     mFinalFNRLength[mTaskCount-1] = 0;
+    pSetHyperPeriodLength();
 }
 
 FPDS::~FPDS()
@@ -35,13 +37,18 @@ bool FPDS::computeOptimalPriorityOrder()
 {
     bool isSchedulable = false;
     int minFNRValue = INT_MAX;
-    int taskIndex = -1;
-    for (int k=mTaskCount-1; k>0; k--)
+    int taskIndex = INT_MAX;
+
+    for (int k=mTaskCount-1; k>=0; k--)
     {
+        cout << "=============================================" << endl;
+        cout << "[FPDS] Running FNR-PA on level-" << k << endl;
+        cout << "=============================================" << endl;
         for (int i=k; i>=0; i--)
         {
+            cout << "[FPDS] Computing FNR Length for Task-" << i << endl;
             int currFNRValue = pGetMinFNRTask(i, k, minFNRValue);
-            if (currFNRValue <= mTaskSet[i].execution_time)
+            if (currFNRValue <= mTaskSet[i].execution_time && currFNRValue > 0)
             {
                 isSchedulable = true;
                 if (minFNRValue > currFNRValue)
@@ -50,20 +57,39 @@ bool FPDS::computeOptimalPriorityOrder()
                     taskIndex = i;
                 }
             }
+            if (currFNRValue < 0)
+            {
+                isSchedulable = false;
+                break;
+            }
+            if (i!=0) cout << "---------------------------------------------" << endl;
+            else cout << endl;
         }
         if (isSchedulable)
         {
-            // perform the transformation
-            Task task = mTaskSet[taskIndex];
-            for (int x = taskIndex; x<k; x++)
+            mFinalFNRLength[k] = minFNRValue;
+            if (taskIndex < k)
             {
-                mTaskSet[x] = mTaskSet[x+1];
+                // perform the transformation
+                Task task = mTaskSet[taskIndex];
+                for (int x = taskIndex; x<k; x++)
+                {
+                    mTaskSet[x] = mTaskSet[x+1];
+                }
+                mTaskSet[k] = task;
             }
-            mTaskSet[k] = task;
         }
         else
         {
             break;
+        }
+    }
+
+    if (isSchedulable)
+    {
+        for (auto f : mFinalFNRLength)
+        {
+            cout << "[FPDS] Final non-pre-emptive region at Level-" << f.first + 1 << " = " << f.second << endl;
         }
     }
     return isSchedulable;
@@ -117,8 +143,12 @@ void FPDS::pReadTaskSet()
 
 int FPDS::pGetMinFNRTask(int index, int level, int& minFNRValue)
 {
-
     float activePeriod = pGetPriorityLevelActivePeriod(level);
+    if (activePeriod < 0)
+    {
+        return -1;
+    }
+    cout << "[FPDS] Priority level-" << level << " active period = " << activePeriod << endl;
     float nJobs = ceil(activePeriod / mTaskSet[index].period);
     vector<int> maxFNRLengths;
     for (int g=0; g<nJobs; g++)
@@ -150,7 +180,9 @@ int FPDS::pGetMinFNRTask(int index, int level, int& minFNRValue)
         {
             maxOfMinExecTimes = *max_element(minExecTimes.begin(), minExecTimes.end());
         }
+        cout << "[FPDS] Max Execution time = " << maxOfMinExecTimes << endl;
         int maxFNRLength = max(mTaskSet[index].execution_time - maxOfMinExecTimes, 1);
+        cout << "[FPDS] For Job g = " << g << " max FNR length = " << maxFNRLength << endl;
         maxFNRLengths.push_back(maxFNRLength);
     }
 
@@ -175,6 +207,12 @@ vector<int> FPDS::pGetHighPoints(int g, int index, int level, int activePeriod)
         }
     }
     hPoints.push_back(gMaxValue);
+    cout << "[FPDS] Local maxima occur at -> {" << flush;
+    for (auto p : hPoints)
+    {
+        cout << p << "," << flush;
+    }
+    cout << "}" << endl;
     return hPoints;
 }
 
@@ -191,11 +229,29 @@ int FPDS::pGetPriorityLevelActivePeriod(int level)
         {
             currActivePeriod += ceil(prevActivePeriod / mTaskSet[i].period) * mTaskSet[i].execution_time;
         }
-    } while (currActivePeriod != prevActivePeriod);
+    } while (currActivePeriod != prevActivePeriod && currActivePeriod <= mHyperPeriodLength);
+    if (currActivePeriod > mHyperPeriodLength)
+    {
+        cout << "[FPDS] Level-i Active Period (" << currActivePeriod << ") is > Hyper Period (" << mHyperPeriodLength << ")" << endl;
+        cout << "[FPDS] Level-i Active Period is Not Converging" << endl;
+        currActivePeriod = -1;
+    }
     return currActivePeriod;
 }
 
 int FPDS::pGetBlockingPeriod(int level)
 {
     return mFinalFNRLength[level];
+}
+
+void FPDS::pSetHyperPeriodLength()
+{
+    int LCM = mTaskSet[0].period;
+    int p = 1;
+    for (int i=1; i<mTaskCount; i++)
+    {
+        p = mTaskSet[i].period;
+        LCM = lcm(LCM,p);
+    }
+    mHyperPeriodLength = LCM;
 }

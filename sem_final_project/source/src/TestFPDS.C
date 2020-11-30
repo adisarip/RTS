@@ -19,16 +19,21 @@ int main (int argc, char* argv[])
     string input_file  = argv[1];
     FPDS xFpds(input_file);
 
-    cout << "Initial Order of Taskset : " << flush;
+    cout << "\nInitial Order of Taskset : " << flush;
     xFpds.displayPriorityOrder();
+    cout << endl;
 
     bool isSchedulable = xFpds.computeOptimalPriorityOrder();
 
     if (isSchedulable)
     {
-        cout << "Taskset is SCHEDULABLE !!!" << endl;
+        cout << "\n[FPDS] The given taskset is SCHEDULABLE using FPDS\n" << endl;
         cout << "Final Schedulable Order of Taskset : " << flush;
         xFpds.displayPriorityOrder();
+    }
+    else
+    {
+        cout << "\n[FPDS] The given taskset is NOT-SCHEDULABLE using FPDS\n" << endl;
     }
 
 
